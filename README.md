@@ -6,7 +6,7 @@
 [![View Code](https://img.shields.io/badge/💻-View%20Code-blue?style=for-the-badge&logo=github)](https://github.com/abdulmananumt/pabloskanban)
 [![Download](https://img.shields.io/badge/⬇️-Download-orange?style=for-the-badge)](https://github.com/abdulmananumt/pabloskanban/archive/refs/heads/main.zip)
 
-![Visitor Count](https://profile-counter.glitch.me/abdulmananumt-pabloskanban/count.svg)
+![Profile Views](https://komarev.com/ghpvc/?username=abdulmananumt&repo=pabloskanban&color=brightgreen&style=flat-square&label=Repository+Views)
 
 </div>
 
