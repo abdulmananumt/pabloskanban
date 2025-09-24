@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pablo's Kanban</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #e9ecef;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border: #dee2e6;
+            --accent: #0d6efd;
+            --accent-hover: #0b5ed7;
+            --success: #198754;
+            --warning: #fd7e14;
+            --danger: #dc3545;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #404040;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --border: #404040;
+            --accent: #4dabf7;
+            --accent-hover: #339af0;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            background-color: var(--bg-secondary);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #b02a37;
+        }
+
+        .theme-toggle {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 0.3rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .board {
+            padding: 2rem;
+            display: flex;
+            gap: 1.5rem;
+            overflow-x: auto;
+            min-height: calc(100vh - 100px);
+        }
+
+        .column {
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1rem;
+            min-width: 300px;
+            height: fit-content;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+            min-height: 50px;
+        }
+
+        .column-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 0.3rem 0.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            border-radius: 4px;
+            cursor: text;
+            flex: 1;
+            margin-right: 1rem;
+            min-width: 0;
+            word-wrap: break-word;
+        }
+
+        .column-title:focus {
+            background-color: var(--bg-tertiary);
+            outline: 2px solid var(--accent);
+        }
+
+        .column-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+            width: auto;
+            min-width: 35px;
+            align-items: flex-start;
+            padding-top: 0.3rem;
+        }
+
+        .btn-small {
+            padding: 0.4rem 0.6rem;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            min-width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            min-height: 100px;
+        }
+
+        .task {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 1px 3px var(--shadow);
+            transition: all 0.2s ease;
+            cursor: move;
+        }
+
+        .task:hover {
+            box-shadow: 0 2px 8px var(--shadow);
+            transform: translateY(-1px);
+        }
+
+        .task-content {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            width: 100%;
+            resize: vertical;
+            min-height: 60px;
+            font-family: inherit;
+        }
+
+        .task-content:focus {
+            outline: 1px solid var(--accent);
+            border-radius: 4px;
+        }
+
+        .task-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 0.5rem;
+            gap: 0.5rem;
+        }
+
+        .add-task-form {
+            margin-top: 1rem;
+        }
+
+        .add-task-textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            min-height: 80px;
+            resize: vertical;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        .add-task-textarea:focus {
+            outline: 2px solid var(--accent);
+            border-color: var(--accent);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .add-column {
+            background-color: var(--bg-tertiary);
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            min-width: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
+        }
+
+        .add-column:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+
+        .welcome-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .welcome-modal.active {
+            display: flex;
+        }
+
+        .welcome-content {
+            background-color: var(--bg-primary);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 15px 40px var(--shadow);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            text-align: center;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .welcome-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .welcome-content::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+
+        .welcome-content::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        .welcome-content::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-hover);
+        }
+
+        .welcome-content h2 {
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .welcome-content p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .feature-list {
+            text-align: left;
+            margin: 1.5rem 0;
+            padding-left: 1rem;
+        }
+
+        .feature-list li {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            list-style: none;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .feature-list li:before {
+            content: "✨";
+            position: absolute;
+            left: 0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--bg-primary);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px var(--shadow);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal h3 {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal input:focus {
+            outline: 2px solid var(--accent);
+            border-color: var(--accent);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .drag-over {
+            background-color: rgba(13, 110, 253, 0.1);
+            border: 2px dashed var(--accent);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .header-controls {
+                justify-content: center;
+            }
+
+            .board {
+                padding: 1rem;
+                flex-direction: column;
+            }
+
+            .column {
+                min-width: unset;
+            }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <header class="header">
+        <h1>📋 Pablo's Kanban</h1>
+        <div class="header-controls">
+            <button class="btn btn-primary" onclick="showAddColumnModal()">
+                ➕ Add Column
+            </button>
+            <button class="btn btn-secondary" onclick="showWelcomeModal()">
+                ℹ️ Help
+            </button>
+            <button class="btn btn-danger" onclick="showClearStorageModal()">
+                🗑️ Clear Storage
+            </button>
+            <div class="theme-toggle" onclick="toggleTheme()">
+                <span id="theme-icon">🌙</span>
+                <span id="theme-text">Dark</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="board" id="board">
+        <!-- Columns will be dynamically added here -->
+    </main>
+
+    <!-- Welcome Modal -->
+    <div class="welcome-modal" id="welcomeModal">
+        <div class="welcome-content">
+            <h2>ℹ️ How to Use Pablo's Kanban</h2>
+            <p>This Kanban board will help you organize and manage your daily tasks efficiently.</p>
+            
+            <ul class="feature-list">
+                <li>Create tasks as paragraphs in customizable columns</li>
+                <li>Drag and drop tasks between columns to track progress</li>
+                <li>Add, rename, or delete columns as needed</li>
+                <li>Edit tasks by clicking on them</li>
+                <li>Switch between light and dark themes</li>
+                <li>All data is automatically saved to your browser</li>
+            </ul>
+            
+            <p><strong>⚠️ About Storage:</strong> If you clear all storage, you'll lose all your tasks and columns, but don't worry - the default columns (To Do, In Progress, Completed) will be recreated and this welcome message will appear again to help you get started!</p>
+            
+            <p style="margin-top: 1.5rem; font-style: italic;">Start organizing your tasks and boost your productivity! 🚀</p>
+            
+            <div style="margin-top: 2rem;">
+                <button class="btn btn-primary" onclick="closeWelcomeModal()" style="padding: 0.8rem 2rem; font-size: 1rem;">
+                    Got it! 👍
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Column Modal -->
+    <div class="modal" id="addColumnModal">
+        <div class="modal-content">
+            <h3>Add New Column</h3>
+            <input type="text" id="columnNameInput" placeholder="Enter column name" maxlength="50">
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="hideAddColumnModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="addColumn()">Add Column</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear Storage Modal -->
+    <div class="modal" id="clearStorageModal">
+        <div class="modal-content">
+            <h3>⚠️ Clear All Data</h3>
+            <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                This will permanently delete all your columns and tasks. This action cannot be undone.
+            </p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="hideClearStorageModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="clearStorage()">Clear All Data</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class KanbanBoard {
+            constructor() {
+                this.columns = [];
+                this.nextTaskId = 1;
+                this.nextColumnId = 1;
+                this.init();
+            }
+
+            init() {
+                this.loadFromStorage();
+                this.render();
+                this.setupEventListeners();
+            }
+
+            loadFromStorage() {
+                const stored = localStorage.getItem('kanban-data');
+                
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    this.columns = data.columns || [];
+                    this.nextTaskId = data.nextTaskId || 1;
+                    this.nextColumnId = data.nextColumnId || 1;
+                }
+
+                // If no data exists, create default columns
+                if (this.columns.length === 0) {
+                    this.columns = [
+                        { id: 1, title: 'To Do', tasks: [] },
+                        { id: 2, title: 'In Progress', tasks: [] },
+                        { id: 3, title: 'Completed', tasks: [] }
+                    ];
+                    this.nextColumnId = 4;
+                }
+            }
+
+            saveToStorage() {
+                const data = {
+                    columns: this.columns,
+                    nextTaskId: this.nextTaskId,
+                    nextColumnId: this.nextColumnId
+                };
+                localStorage.setItem('kanban-data', JSON.stringify(data));
+            }
+
+            render() {
+                const board = document.getElementById('board');
+                board.innerHTML = '';
+
+                this.columns.forEach(column => {
+                    const columnElement = this.createColumnElement(column);
+                    board.appendChild(columnElement);
+                });
+
+                // Add "Add Column" button
+                const addColumnBtn = document.createElement('div');
+                addColumnBtn.className = 'add-column';
+                addColumnBtn.innerHTML = '➕ Add New Column';
+                addColumnBtn.onclick = () => showAddColumnModal();
+                board.appendChild(addColumnBtn);
+            }
+
+            createColumnElement(column) {
+                const columnDiv = document.createElement('div');
+                columnDiv.className = 'column';
+                columnDiv.dataset.columnId = column.id;
+
+                columnDiv.innerHTML = `
+                    <div class="column-header">
+                        <input type="text" class="column-title" value="${column.title}" 
+                               onchange="kanban.updateColumnTitle(${column.id}, this.value)" maxlength="50">
+                        <div class="column-actions">
+                            <button class="btn btn-danger btn-small" onclick="kanban.deleteColumn(${column.id})">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                    <div class="tasks" id="tasks-${column.id}">
+                        ${column.tasks.map(task => this.createTaskHTML(task)).join('')}
+                    </div>
+                    <div class="add-task-form">
+                        <textarea class="add-task-textarea" placeholder="Enter task description..." 
+                                  id="task-input-${column.id}" rows="3"></textarea>
+                        <div class="form-actions">
+                            <button class="btn btn-primary btn-small" onclick="kanban.addTask(${column.id})">
+                                ➕ Add Task
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                // Setup drag and drop for column
+                const tasksContainer = columnDiv.querySelector(`#tasks-${column.id}`);
+                this.setupDragAndDrop(tasksContainer);
+
+                return columnDiv;
+            }
+
+            createTaskHTML(task) {
+                return `
+                    <div class="task" draggable="true" data-task-id="${task.id}">
+                        <textarea class="task-content" onchange="kanban.updateTask(${task.id}, this.value)">${task.content}</textarea>
+                        <div class="task-actions">
+                            <button class="btn btn-danger btn-small" onclick="kanban.deleteTask(${task.id})">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            setupDragAndDrop(container) {
+                container.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    container.classList.add('drag-over');
+                });
+
+                container.addEventListener('dragleave', (e) => {
+                    if (!container.contains(e.relatedTarget)) {
+                        container.classList.remove('drag-over');
+                    }
+                });
+
+                container.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    container.classList.remove('drag-over');
+                    
+                    const taskId = parseInt(e.dataTransfer.getData('text/plain'));
+                    const columnId = parseInt(container.id.replace('tasks-', ''));
+                    
+                    this.moveTask(taskId, columnId);
+                });
+            }
+
+            setupEventListeners() {
+                document.addEventListener('dragstart', (e) => {
+                    if (e.target.classList.contains('task')) {
+                        e.dataTransfer.setData('text/plain', e.target.dataset.taskId);
+                        e.target.style.opacity = '0.5';
+                    }
+                });
+
+                document.addEventListener('dragend', (e) => {
+                    if (e.target.classList.contains('task')) {
+                        e.target.style.opacity = '1';
+                    }
+                });
+
+                // Handle Enter key for adding tasks
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && e.ctrlKey && e.target.classList.contains('add-task-textarea')) {
+                        const columnId = parseInt(e.target.id.replace('task-input-', ''));
+                        this.addTask(columnId);
+                    }
+                });
+            }
+
+            addColumn(title) {
+                const column = {
+                    id: this.nextColumnId++,
+                    title: title || 'New Column',
+                    tasks: []
+                };
+                this.columns.push(column);
+                this.saveToStorage();
+                this.render();
+            }
+
+            deleteColumn(columnId) {
+                if (confirm('Are you sure you want to delete this column and all its tasks?')) {
+                    this.columns = this.columns.filter(col => col.id !== columnId);
+                    this.saveToStorage();
+                    this.render();
+                }
+            }
+
+            updateColumnTitle(columnId, newTitle) {
+                const column = this.columns.find(col => col.id === columnId);
+                if (column) {
+                    column.title = newTitle.trim() || 'Untitled';
+                    this.saveToStorage();
+                }
+            }
+
+            addTask(columnId) {
+                const input = document.getElementById(`task-input-${columnId}`);
+                const content = input.value.trim();
+                
+                if (!content) return;
+
+                const task = {
+                    id: this.nextTaskId++,
+                    content: content
+                };
+
+                const column = this.columns.find(col => col.id === columnId);
+                if (column) {
+                    column.tasks.push(task);
+                    input.value = '';
+                    this.saveToStorage();
+                    this.render();
+                }
+            }
+
+            deleteTask(taskId) {
+                if (confirm('Are you sure you want to delete this task?')) {
+                    this.columns.forEach(column => {
+                        column.tasks = column.tasks.filter(task => task.id !== taskId);
+                    });
+                    this.saveToStorage();
+                    this.render();
+                }
+            }
+
+            updateTask(taskId, newContent) {
+                this.columns.forEach(column => {
+                    const task = column.tasks.find(t => t.id === taskId);
+                    if (task) {
+                        task.content = newContent;
+                        this.saveToStorage();
+                    }
+                });
+            }
+
+            moveTask(taskId, targetColumnId) {
+                let task = null;
+                
+                // Find and remove task from current column
+                this.columns.forEach(column => {
+                    const taskIndex = column.tasks.findIndex(t => t.id === taskId);
+                    if (taskIndex !== -1) {
+                        task = column.tasks.splice(taskIndex, 1)[0];
+                    }
+                });
+
+                // Add task to target column
+                if (task) {
+                    const targetColumn = this.columns.find(col => col.id === targetColumnId);
+                    if (targetColumn) {
+                        targetColumn.tasks.push(task);
+                        this.saveToStorage();
+                        this.render();
+                    }
+                }
+            }
+
+            clearAllData() {
+                localStorage.removeItem('kanban-data');
+                this.columns = [
+                    { id: 1, title: 'To Do', tasks: [] },
+                    { id: 2, title: 'In Progress', tasks: [] },
+                    { id: 3, title: 'Completed', tasks: [] }
+                ];
+                this.nextTaskId = 1;
+                this.nextColumnId = 4;
+                this.render();
+            }
+        }
+
+        // Initialize Kanban Board
+        const kanban = new KanbanBoard();
+
+        // Modal functions
+        function showAddColumnModal() {
+            document.getElementById('addColumnModal').classList.add('active');
+            document.getElementById('columnNameInput').focus();
+        }
+
+        function hideAddColumnModal() {
+            document.getElementById('addColumnModal').classList.remove('active');
+            document.getElementById('columnNameInput').value = '';
+        }
+
+        function addColumn() {
+            const input = document.getElementById('columnNameInput');
+            const title = input.value.trim();
+            
+            if (!title) {
+                alert('Please enter a column name');
+                return;
+            }
+
+            kanban.addColumn(title);
+            hideAddColumnModal();
+        }
+
+        function showClearStorageModal() {
+            document.getElementById('clearStorageModal').classList.add('active');
+        }
+
+        function hideClearStorageModal() {
+            document.getElementById('clearStorageModal').classList.remove('active');
+        }
+
+        function clearStorage() {
+            kanban.clearAllData();
+            hideClearStorageModal();
+        }
+
+        // Welcome/Help modal functions
+        function showWelcomeModal() {
+            document.getElementById('welcomeModal').classList.add('active');
+        }
+
+        function closeWelcomeModal() {
+            document.getElementById('welcomeModal').classList.remove('active');
+        }
+
+        // Theme toggle
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            const themeText = document.getElementById('theme-text');
+            
+            if (body.dataset.theme === 'light') {
+                body.dataset.theme = 'dark';
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Light';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.dataset.theme = 'light';
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Dark';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Load theme on startup
+        (function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.dataset.theme = savedTheme;
+            
+            const themeIcon = document.getElementById('theme-icon');
+            const themeText = document.getElementById('theme-text');
+            
+            if (savedTheme === 'dark') {
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Light';
+            } else {
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Dark';
+            }
+        })();
+
+        // Handle Enter key in modal
+        document.getElementById('columnNameInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                addColumn();
+            } else if (e.key === 'Escape') {
+                hideAddColumnModal();
+            }
+        });
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                if (e.target.id === 'addColumnModal') hideAddColumnModal();
+                if (e.target.id === 'clearStorageModal') hideClearStorageModal();
+            }
+            if (e.target.classList.contains('welcome-modal')) {
+                closeWelcomeModal();
+            }
+        });
+    </script>
+</body>
+</html>
