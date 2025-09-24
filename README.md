@@ -1,5 +1,13 @@
 # 📋 Pablo's Kanban
 
+<div align="center">
+  
+[![Live Demo](https://img.shields.io/badge/🌐-Live%20Demo-green?style=for-the-badge)](https://abdulmananumt.github.io/pabloskanban/)
+[![View Code](https://img.shields.io/badge/💻-View%20Code-blue?style=for-the-badge&logo=github)](https://github.com/abdulmananumt/pabloskanban)
+[![Download](https://img.shields.io/badge/⬇️-Download-orange?style=for-the-badge)](https://github.com/abdulmananumt/pabloskanban/archive/refs/heads/main.zip)
+
+</div>
+
 A beautiful, modern Kanban board application built with vanilla HTML, CSS, and JavaScript. Perfect for organizing your daily tasks and boosting productivity!
 
 ## ✨ Features
