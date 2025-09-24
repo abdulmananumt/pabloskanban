@@ -55,5 +55,4 @@ A beautiful, modern Kanban board application built with vanilla HTML, CSS, and J
 2. Open it in any modern web browser
 3. That's it! No installation or setup required
 
-### Option 3: Clone Repository
-```bash
+
